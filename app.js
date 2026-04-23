@@ -40,7 +40,12 @@ const dom = {
   previewClose: document.getElementById('preview-close'),
   messageTemplate: document.getElementById('message-template'),
   galleryTemplate: document.getElementById('gallery-item-template'),
-  generateButton: document.getElementById('generate-button')
+  generateButton: document.getElementById('generate-button'),
+  toggleConfig: document.getElementById('toggle-config'),
+  toggleChat: document.getElementById('toggle-chat'),
+  configDrawer: document.getElementById('config-drawer'),
+  chatDrawer: document.getElementById('chat-drawer'),
+  scrim: document.getElementById('scrim')
 };
 
 let dbPromise = null;
@@ -168,7 +173,38 @@ function readConfigFromInputs() {
 
 function setStatus(text, busy = false) {
   dom.statusPill.textContent = text;
-  dom.statusPill.style.background = busy ? 'rgba(197, 235, 212, 0.16)' : 'rgba(255,255,255,0.08)';
+  dom.statusPill.dataset.busy = busy ? 'true' : 'false';
+}
+
+function autoResizeTextarea() {
+  dom.promptInput.style.height = 'auto';
+  const next = Math.min(dom.promptInput.scrollHeight, 200);
+  dom.promptInput.style.height = `${next}px`;
+}
+
+function openDrawer(drawer) {
+  if (!drawer) return;
+  drawer.classList.add('is-open');
+  drawer.setAttribute('aria-hidden', 'false');
+  dom.scrim.hidden = false;
+  requestAnimationFrame(() => dom.scrim.classList.add('is-visible'));
+}
+
+function closeDrawer(drawer) {
+  if (!drawer) return;
+  drawer.classList.remove('is-open');
+  drawer.setAttribute('aria-hidden', 'true');
+  const anyOpen = document.querySelector('.drawer.is-open');
+  if (!anyOpen) {
+    dom.scrim.classList.remove('is-visible');
+    setTimeout(() => {
+      if (!document.querySelector('.drawer.is-open')) dom.scrim.hidden = true;
+    }, 250);
+  }
+}
+
+function closeAllDrawers() {
+  document.querySelectorAll('.drawer.is-open').forEach((d) => closeDrawer(d));
 }
 
 function renderMessage(role, content, attachments = []) {
@@ -213,8 +249,8 @@ function renderHero(image) {
     dom.heroState.innerHTML = `
       <div class="hero-empty">
         <p class="hero-empty-label">Result Canvas</p>
-        <h3>第一张结果图会停在这里。</h3>
-        <p>左侧继续输入提示词，最新一张 AI 返回结果会优先占据这块主画布，下方保留历史缩略图。</p>
+        <h3>从一句话开始创作</h3>
+        <p>在下方输入提示词，或上传参考图再描述改动。最新一张结果会占据主画布，历史会沉淀到下方横向胶片条。</p>
       </div>
     `;
     return;
@@ -232,7 +268,7 @@ function renderHero(image) {
 
   const note = document.createElement('p');
   note.className = 'hero-note';
-  note.textContent = '右侧只展示本次请求返回的 AI 结果。';
+  note.textContent = '最新生成图';
 
   meta.appendChild(badge);
   meta.appendChild(note);
@@ -418,6 +454,38 @@ async function generate(prompt) {
 }
 
 dom.configForm.addEventListener('input', readConfigFromInputs);
+dom.model.addEventListener('change', readConfigFromInputs);
+dom.size.addEventListener('change', readConfigFromInputs);
+
+dom.promptInput.addEventListener('input', autoResizeTextarea);
+dom.promptInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    dom.promptForm.requestSubmit();
+  }
+});
+
+dom.toggleConfig.addEventListener('click', () => {
+  const isOpen = dom.configDrawer.classList.contains('is-open');
+  closeAllDrawers();
+  if (!isOpen) openDrawer(dom.configDrawer);
+});
+dom.toggleChat.addEventListener('click', () => {
+  const isOpen = dom.chatDrawer.classList.contains('is-open');
+  closeAllDrawers();
+  if (!isOpen) openDrawer(dom.chatDrawer);
+});
+dom.scrim.addEventListener('click', closeAllDrawers);
+document.querySelectorAll('[data-drawer-close]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const id = btn.getAttribute('data-drawer-close');
+    closeDrawer(document.getElementById(id));
+  });
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeAllDrawers();
+});
+
 dom.imageInput.addEventListener('change', async (event) => {
   const files = Array.from(event.target.files || []);
   if (!files.length) return;
@@ -450,6 +518,7 @@ dom.promptForm.addEventListener('submit', async (event) => {
   const prompt = dom.promptInput.value.trim();
   if (!prompt) return;
   dom.promptInput.value = '';
+  autoResizeTextarea();
   await generate(prompt);
 });
 

@@ -3,153 +3,149 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Image Chat Demo</title>
+    <title>Chat → Image</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="shell">
-      <aside class="sidebar">
-        <div class="sidebar-top">
-          <div class="brand-block">
-            <p class="eyebrow">Chat To Image</p>
-            <h1>对话式生图工作台</h1>
-            <p class="lede">把接口配置、提示词对话和结果浏览放在一个画布里，直接持续产图。</p>
-          </div>
-
-          <div class="sidebar-intro">
-            <p class="sidebar-label">当前能力</p>
-            <div class="signal-list">
-              <span>文本生图</span>
-              <span>带图改图</span>
-              <span>历史恢复</span>
-            </div>
+    <div class="app">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">◆</span>
+            <span class="brand-name">Chat <span class="brand-arrow">→</span> Image</span>
           </div>
         </div>
 
-        <form id="config-form" class="config-panel">
-          <div class="config-heading">
-            <p class="sidebar-label">接口控制</p>
-            <p class="config-copy">左侧只做配置，不堆结果。生成后的主图和缩略结果统一放到右侧。</p>
-          </div>
-          <label class="field">
-            <span>Base URL</span>
-            <input
-              id="base-url"
-              name="baseUrl"
-              value="http://154.26.182.225"
-              placeholder="http://154.26.182.225"
-              required
-            />
+        <div class="topbar-center">
+          <label class="segment" for="model">
+            <span class="segment-label">模型</span>
+            <select id="model" name="model">
+              <option value="gpt-image-2">gpt-image-2</option>
+              <option value="gpt-image-1.5">gpt-image-1.5</option>
+              <option value="gpt-image-1">gpt-image-1</option>
+            </select>
           </label>
-          <label class="field">
-            <span>API Key</span>
-            <input
-              id="api-key"
-              name="apiKey"
-              type="password"
-              value="sk-bfa9cc524cc2343d12d6d22ee8b49a17aa20e165066f1f1816228227bb488a4c"
-              placeholder="sk-..."
-              required
-            />
+          <label class="segment" for="size">
+            <span class="segment-label">尺寸</span>
+            <select id="size" name="size">
+              <option value="1024x1024">1024 × 1024</option>
+              <option value="1536x1024">1536 × 1024</option>
+              <option value="1024x1536">1024 × 1536</option>
+            </select>
           </label>
-          <div class="field-grid">
-            <label class="field">
-              <span>模型</span>
-              <select id="model" name="model">
-                <option value="gpt-image-2">gpt-image-2</option>
-                <option value="gpt-image-1.5">gpt-image-1.5</option>
-                <option value="gpt-image-1">gpt-image-1</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>尺寸</span>
-              <select id="size" name="size">
-                <option value="1024x1024">1024 x 1024</option>
-                <option value="1536x1024">1536 x 1024</option>
-                <option value="1024x1536">1024 x 1536</option>
-              </select>
-            </label>
-          </div>
-          <p class="hint">配置和会话保存在当前浏览器本地存储，不写入代码。</p>
-        </form>
+        </div>
 
-        <div class="sidebar-footer">
+        <div class="topbar-right">
           <div class="status-pill" id="status-pill">当前空闲</div>
-          <p class="meta">本地代理：<code>http://127.0.0.1:3187/api/generate</code></p>
+          <button id="toggle-chat" class="icon-button" type="button" aria-label="对话记录" title="对话记录">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <button id="toggle-config" class="icon-button" type="button" aria-label="设置" title="接口设置">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <button id="clear-chat" class="icon-button" type="button" aria-label="清空" title="清空历史">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
         </div>
-      </aside>
+      </header>
 
-      <main class="workspace">
-        <header class="workspace-header">
-          <div>
-            <p class="workspace-kicker">Sub2API Image Workspace</p>
-            <h2>提示词对话与结果画布</h2>
-          </div>
-          <div class="workspace-signals">
-            <span>当前模型由左侧配置控制</span>
-            <span>右侧只展示 AI 返回结果</span>
-          </div>
-        </header>
+      <main class="stage">
+        <div id="hero-state" class="hero-state"></div>
 
-        <div class="workspace-grid">
-          <section class="chat-panel">
-            <header class="panel-header">
-              <div>
-                <p class="panel-kicker">Conversation</p>
-                <h2>提示词对话</h2>
-              </div>
-              <button id="clear-chat" class="ghost-button" type="button">清空记录</button>
-            </header>
-
-            <div id="messages" class="messages"></div>
-
-            <form id="prompt-form" class="composer">
-              <div class="composer-toolbar">
-                <label class="upload-button" for="image-input">上传参考图</label>
-                <input id="image-input" name="images" type="file" accept="image/*" multiple hidden />
-                <p class="composer-tip">有图就走改图接口，无图就走纯文本生成。</p>
-              </div>
-              <div id="attachment-strip" class="attachment-strip" hidden></div>
+        <div class="composer-dock">
+          <form id="prompt-form" class="composer">
+            <div id="attachment-strip" class="attachment-strip" hidden></div>
+            <div class="composer-row">
+              <label class="upload-button" for="image-input" title="上传参考图">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </label>
+              <input id="image-input" name="images" type="file" accept="image/*" multiple hidden />
               <textarea
                 id="prompt-input"
                 name="prompt"
-                rows="4"
-                placeholder="例如：上传一张头像，再说“改成极简黑白 logo，保留轮廓感”。"
+                rows="1"
+                placeholder="描述你想要的图片，或上传参考图后说明改动…"
                 required
               ></textarea>
-              <div class="composer-actions">
-                <p class="composer-tip">支持连续对话，最新生成图会优先占据右侧主画布。</p>
-                <button id="generate-button" class="primary-button" type="submit">
-                  生成图片
-                </button>
-              </div>
-            </form>
-          </section>
-
-          <section class="gallery-panel">
-            <header class="panel-header">
-              <div>
-                <p class="panel-kicker">Output</p>
-                <h2>生成结果</h2>
-              </div>
-              <span id="gallery-count" class="count-label">0 张</span>
-            </header>
-
-            <div id="hero-state" class="hero-state">
-              <p>第一张图会出现在这里。</p>
+              <button id="generate-button" class="primary-button" type="submit">
+                <span>生成</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+              </button>
             </div>
-
-            <div id="gallery" class="gallery"></div>
-          </section>
+            <p class="composer-tip">有图走改图 · 无图走生图 · Enter 提交 · Shift+Enter 换行</p>
+          </form>
         </div>
       </main>
+
+      <section class="rail">
+        <div class="rail-head">
+          <div class="rail-title">
+            <p class="rail-kicker">History</p>
+            <h3>生成历史</h3>
+          </div>
+          <span id="gallery-count" class="count-label">0 张</span>
+        </div>
+        <div id="gallery" class="gallery"></div>
+      </section>
     </div>
+
+    <aside class="drawer drawer-right" id="config-drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <p class="drawer-kicker">Config</p>
+          <h2>接口设置</h2>
+        </div>
+        <button class="icon-button drawer-close" data-drawer-close="config-drawer" type="button" aria-label="关闭">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="config-form" class="drawer-body">
+        <label class="field">
+          <span>Base URL</span>
+          <input
+            id="base-url"
+            name="baseUrl"
+            value="http://154.26.182.225"
+            placeholder="http://154.26.182.225"
+            required
+          />
+        </label>
+        <label class="field">
+          <span>API Key</span>
+          <input
+            id="api-key"
+            name="apiKey"
+            type="password"
+            value="sk-bfa9cc524cc2343d12d6d22ee8b49a17aa20e165066f1f1816228227bb488a4c"
+            placeholder="sk-..."
+            required
+          />
+        </label>
+        <p class="hint">配置保存在本地浏览器，不写入代码。</p>
+        <p class="meta">本地代理：<code>http://127.0.0.1:3187/api/generate</code></p>
+      </form>
+    </aside>
+
+    <aside class="drawer drawer-left" id="chat-drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <p class="drawer-kicker">Conversation</p>
+          <h2>对话记录</h2>
+        </div>
+        <button class="icon-button drawer-close" data-drawer-close="chat-drawer" type="button" aria-label="关闭">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="messages" class="messages drawer-body"></div>
+    </aside>
+
+    <div id="scrim" class="scrim" hidden></div>
 
     <dialog id="preview-dialog" class="preview-dialog">
       <button id="preview-close" class="preview-close" type="button">关闭</button>
@@ -171,8 +167,8 @@
         </button>
         <div class="gallery-copy">
           <div class="gallery-head">
-            <span class="gallery-badge">AI结果</span>
-            <a class="gallery-download" download>保存 PNG</a>
+            <span class="gallery-badge">AI</span>
+            <a class="gallery-download" download>PNG</a>
           </div>
           <p class="gallery-title"></p>
         </div>

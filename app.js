@@ -359,15 +359,28 @@ function renderGalleryItem(image, index) {
 
 function addImages(prompt, images, options = {}) {
   const createdAt = Date.now();
+  const sourceAttachments = Array.isArray(options.sourceAttachments)
+    ? options.sourceAttachments
+    : [];
+  const sourceUrls = new Set(sourceAttachments.map((a) => a.dataUrl));
 
-  images.forEach((image, index) => {
+  let outputs = images.filter((img) => !sourceUrls.has(img.dataUrl));
+  if (!outputs.length) outputs = images.slice();
+
+  if (
+    options.mode === 'edits' &&
+    sourceAttachments.length > 0 &&
+    outputs.length > 1
+  ) {
+    outputs = outputs.slice(-1);
+  }
+
+  outputs.forEach((image, index) => {
     const savedImage = {
       ...image,
       prompt,
       mode: options.mode || image.mode || 'generations',
-      sourceAttachments: Array.isArray(options.sourceAttachments)
-        ? options.sourceAttachments.map((attachment) => ({ ...attachment }))
-        : [],
+      sourceAttachments: sourceAttachments.map((attachment) => ({ ...attachment })),
       fileName: `image-chat-${createdAt}-${index + 1}.png`
     };
     state.images.push(savedImage);
@@ -376,7 +389,7 @@ function addImages(prompt, images, options = {}) {
 
   void saveSession();
   dom.galleryCount.textContent = `${dom.gallery.children.length} 张`;
-  renderHero(images[0]);
+  renderHero(outputs[0]);
 }
 
 function clearChat() {

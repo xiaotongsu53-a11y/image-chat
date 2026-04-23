@@ -1025,26 +1025,30 @@ button:disabled {
 
 /* =============== Preview dialog =============== */
 .preview-dialog {
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  padding: 16px;
   border: 0;
-  width: 96vw;
-  height: 94vh;
-  max-width: none;
-  max-height: 94vh;
-  padding: 14px;
-  border-radius: var(--radius-lg);
-  background: rgba(14, 14, 22, 0.96);
-  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: #0a0a10;
   color: var(--ink);
-  box-shadow: var(--shadow-strong);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.preview-dialog[open] {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .preview-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: #0a0a10;
 }
 
 .preview-head {

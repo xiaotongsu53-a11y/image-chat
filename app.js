@@ -541,8 +541,21 @@ dom.promptForm.addEventListener('submit', async (event) => {
 });
 
 dom.clearChat.addEventListener('click', clearChat);
-dom.previewClose.addEventListener('click', () => dom.previewDialog.close());
+
+let previewPan = null;
+let previewPanned = false;
+
+function closePreview() {
+  previewPan = null;
+  previewPanned = false;
+  dom.previewBody.classList.remove('is-panning', 'is-zoomed');
+  dom.previewZoom.textContent = '原图';
+  if (dom.previewDialog.open) dom.previewDialog.close();
+}
+
+dom.previewClose.addEventListener('click', closePreview);
 dom.previewZoom.addEventListener('click', togglePreviewZoom);
+dom.previewDialog.addEventListener('cancel', closePreview);
 dom.previewDialog.addEventListener('click', (event) => {
   if (event.target !== dom.previewDialog) return;
   const rect = dom.previewDialog.getBoundingClientRect();
@@ -551,13 +564,8 @@ dom.previewDialog.addEventListener('click', (event) => {
     event.clientY <= rect.top + rect.height &&
     rect.left <= event.clientX &&
     event.clientX <= rect.left + rect.width;
-  if (!isInDialog) {
-    dom.previewDialog.close();
-  }
+  if (!isInDialog) closePreview();
 });
-
-let previewPan = null;
-let previewPanned = false;
 
 dom.previewBody.addEventListener('mousedown', (event) => {
   if (!dom.previewBody.classList.contains('is-zoomed')) return;

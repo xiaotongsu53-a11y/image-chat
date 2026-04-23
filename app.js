@@ -251,7 +251,7 @@ function renderHero(image) {
       <div class="hero-empty">
         <p class="hero-empty-label">Result Canvas</p>
         <h3>从一句话开始创作</h3>
-        <p>在下方输入提示词，或上传参考图再描述改动。最新一张结果会占据主画布，历史会沉淀到下方横向胶片条。</p>
+        <p>在下方输入提示词，或上传参考图再描述改动。最新一张结果会占据主画布，历史会沉淀到左侧胶片柱。</p>
       </div>
     `;
     return;

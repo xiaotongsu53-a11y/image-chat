@@ -70,8 +70,24 @@ button:disabled {
 .app {
   height: 100vh;
   display: grid;
-  grid-template-rows: var(--topbar-h) 1fr auto;
+  grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+  grid-template-columns: 104px minmax(0, 1fr);
+  grid-template-areas:
+    "topbar topbar"
+    "rail stage";
   min-height: 0;
+}
+
+.topbar {
+  grid-area: topbar;
+}
+
+.rail {
+  grid-area: rail;
+}
+
+.stage {
+  grid-area: stage;
 }
 
 /* =============== Topbar =============== */
@@ -608,21 +624,28 @@ button:disabled {
   background: var(--danger);
 }
 
-/* =============== History rail =============== */
+/* =============== History rail (left vertical) =============== */
 .rail {
-  padding: 14px 24px 18px;
-  border-top: 1px solid var(--line);
-  background: rgba(7, 7, 11, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 10px 14px 14px;
+  border-right: 1px solid var(--line);
+  background: rgba(7, 7, 11, 0.42);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .rail-head {
+  flex-shrink: 0;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 2px 2px 6px;
+  border-bottom: 1px solid var(--line);
 }
 
 .rail-kicker {
@@ -636,41 +659,46 @@ button:disabled {
 
 .rail h3 {
   margin: 2px 0 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: -0.01em;
 }
 
 .count-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--muted);
   font-weight: 500;
+  margin-top: 2px;
 }
 
 .gallery {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 6px;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 2px 6px;
   scroll-behavior: smooth;
 }
 
 .gallery:empty::before {
-  content: "还没有生成图，先从底部输入一句提示词。";
-  font-size: 12px;
+  content: "还没有生成图";
+  font-size: 11px;
   color: var(--muted);
-  padding: 18px 0;
+  padding: 10px 2px;
+  line-height: 1.5;
+  text-align: left;
 }
 
 .gallery-item {
+  position: relative;
   flex: 0 0 auto;
-  width: 120px;
-  display: grid;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 12px;
+  width: 100%;
+  padding: 4px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--line);
   opacity: 0;
@@ -680,18 +708,20 @@ button:disabled {
 }
 
 .gallery-item:hover {
-  border-color: var(--line-strong);
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-2px);
+  border-color: rgba(139, 124, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
 }
 
 .gallery-thumb {
+  display: block;
+  width: 100%;
   border: 0;
   padding: 0;
   margin: 0;
   background: transparent;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 7px;
   cursor: pointer;
 }
 
@@ -708,59 +738,54 @@ button:disabled {
 }
 
 .gallery-copy {
-  display: grid;
-  gap: 4px;
-  padding: 0 2px 2px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+}
+
+.gallery-item:hover .gallery-copy {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .gallery-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
 }
 
-.gallery-title {
-  margin: 0;
-  font-size: 10px;
-  line-height: 1.35;
-  color: var(--muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
+.gallery-title,
 .gallery-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 18px;
-  border-radius: 999px;
-  padding: 0 6px;
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+  display: none;
 }
 
 .gallery-download {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
-  color: var(--muted);
+  letter-spacing: 0.04em;
+  color: #fff;
   text-decoration: none;
-  padding: 2px 6px;
+  padding: 3px 6px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid var(--line-strong);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .gallery-download:hover {
   color: var(--accent-strong);
-  background: var(--accent-soft);
-  border-color: rgba(139, 124, 255, 0.3);
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(139, 124, 255, 0.4);
+}
+
+.gallery::-webkit-scrollbar {
+  width: 4px;
 }
 
 /* =============== Drawers =============== */
@@ -1098,6 +1123,10 @@ button:disabled {
 
 /* =============== Responsive =============== */
 @media (max-width: 900px) {
+  .app {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+
   .topbar {
     grid-template-columns: 1fr auto;
     gap: 8px;
@@ -1117,7 +1146,7 @@ button:disabled {
   }
 
   .rail {
-    padding: 12px 14px 16px;
+    padding: 12px 8px 12px 10px;
   }
 
   .composer {
@@ -1134,7 +1163,15 @@ button:disabled {
     --topbar-h: 52px;
   }
 
-  .gallery-item {
-    width: 100px;
+  .app {
+    grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "topbar"
+      "stage";
+  }
+
+  .rail {
+    display: none;
   }
 }

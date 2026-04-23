@@ -45,7 +45,8 @@ const dom = {
   toggleChat: document.getElementById('toggle-chat'),
   configDrawer: document.getElementById('config-drawer'),
   chatDrawer: document.getElementById('chat-drawer'),
-  scrim: document.getElementById('scrim')
+  scrim: document.getElementById('scrim'),
+  progressTrack: document.getElementById('progress-track')
 };
 
 let dbPromise = null;
@@ -412,6 +413,7 @@ async function generate(prompt) {
   state.generating = true;
   dom.generateButton.disabled = true;
   dom.heroState.classList.add('loading');
+  dom.progressTrack.hidden = false;
   setStatus('生成中...', true);
   const userAttachments = state.composerImages.map((attachment) => ({ ...attachment }));
   appendMessage('user', prompt, userAttachments);
@@ -450,6 +452,7 @@ async function generate(prompt) {
   } finally {
     state.generating = false;
     dom.generateButton.disabled = false;
+    dom.progressTrack.hidden = true;
   }
 }
 

@@ -527,6 +527,48 @@ button:disabled {
   display: none;
 }
 
+.progress-track {
+  position: relative;
+  height: 6px;
+  margin: 0 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.progress-track[hidden] {
+  display: none;
+}
+
+.progress-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 124, 255, 0.2) 20%,
+    #8b7cff 50%,
+    rgba(94, 196, 255, 0.8) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px var(--accent-glow);
+  animation: progressSlide 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes progressSlide {
+  0% {
+    left: -40%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
 .attachment-chip {
   position: relative;
   width: 64px;

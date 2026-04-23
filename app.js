@@ -213,10 +213,30 @@ function renderHero(image) {
     dom.heroState.innerHTML = '<p>第一张图会出现在这里。</p>';
     return;
   }
+
+  const frame = document.createElement('div');
+  frame.className = 'hero-frame';
+
+  const meta = document.createElement('div');
+  meta.className = 'hero-meta';
+
+  const badge = document.createElement('span');
+  badge.className = 'hero-badge';
+  badge.textContent = image.mode === 'edits' ? 'AI改图结果' : 'AI生成结果';
+
+  const note = document.createElement('p');
+  note.className = 'hero-note';
+  note.textContent = '右侧只展示本次请求返回的 AI 结果。';
+
+  meta.appendChild(badge);
+  meta.appendChild(note);
+  frame.appendChild(meta);
+
   const img = document.createElement('img');
   img.src = image.dataUrl;
   img.alt = image.revisedPrompt || '生成图片';
-  dom.heroState.appendChild(img);
+  frame.appendChild(img);
+  dom.heroState.appendChild(frame);
 }
 
 function openPreview(src) {
@@ -275,13 +295,17 @@ function renderGalleryItem(image, index) {
   dom.gallery.prepend(fragment);
 }
 
-function addImages(prompt, images) {
+function addImages(prompt, images, options = {}) {
   const createdAt = Date.now();
 
   images.forEach((image, index) => {
     const savedImage = {
       ...image,
       prompt,
+      mode: options.mode || image.mode || 'generations',
+      sourceAttachments: Array.isArray(options.sourceAttachments)
+        ? options.sourceAttachments.map((attachment) => ({ ...attachment }))
+        : [],
       fileName: `image-chat-${createdAt}-${index + 1}.png`
     };
     state.images.push(savedImage);
@@ -366,7 +390,10 @@ async function generate(prompt) {
       throw new Error(payload.error || '生成失败');
     }
 
-    addImages(prompt, payload.images);
+    addImages(prompt, payload.images, {
+      mode: payload.mode,
+      sourceAttachments: userAttachments
+    });
     const actionLabel = payload.mode === 'edits' ? '已完成带图改图' : '已生成';
     appendMessage('assistant', `${actionLabel} ${payload.images.length} 张图片。`);
     setStatus('生成完成');

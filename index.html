@@ -15,15 +15,28 @@
   <body>
     <div class="shell">
       <aside class="sidebar">
-        <div>
-          <p class="eyebrow">Chat To Image</p>
-          <h1>对话式生图工作台</h1>
-          <p class="lede">
-            填入你的 Sub2API 地址和 Key，像聊天一样输入提示词，右侧会持续累积生成结果。
-          </p>
+        <div class="sidebar-top">
+          <div class="brand-block">
+            <p class="eyebrow">Chat To Image</p>
+            <h1>对话式生图工作台</h1>
+            <p class="lede">把接口配置、提示词对话和结果浏览放在一个画布里，直接持续产图。</p>
+          </div>
+
+          <div class="sidebar-intro">
+            <p class="sidebar-label">当前能力</p>
+            <div class="signal-list">
+              <span>文本生图</span>
+              <span>带图改图</span>
+              <span>历史恢复</span>
+            </div>
+          </div>
         </div>
 
         <form id="config-form" class="config-panel">
+          <div class="config-heading">
+            <p class="sidebar-label">接口控制</p>
+            <p class="config-copy">左侧只做配置，不堆结果。生成后的主图和缩略结果统一放到右侧。</p>
+          </div>
           <label class="field">
             <span>Base URL</span>
             <input
@@ -73,55 +86,68 @@
       </aside>
 
       <main class="workspace">
-        <section class="chat-panel">
-          <header class="panel-header">
-            <div>
-              <p class="panel-kicker">Conversation</p>
-              <h2>提示词对话</h2>
-            </div>
-            <button id="clear-chat" class="ghost-button" type="button">清空记录</button>
-          </header>
-
-          <div id="messages" class="messages"></div>
-
-          <form id="prompt-form" class="composer">
-            <div class="composer-toolbar">
-              <label class="upload-button" for="image-input">上传参考图</label>
-              <input id="image-input" name="images" type="file" accept="image/*" multiple hidden />
-              <p class="composer-tip">支持带图聊天，上传后会走改图接口。</p>
-            </div>
-            <div id="attachment-strip" class="attachment-strip" hidden></div>
-            <textarea
-              id="prompt-input"
-              name="prompt"
-              rows="4"
-              placeholder="例如：上传一张头像，再说‘改成极简黑白 logo，保留轮廓感’。"
-              required
-            ></textarea>
-            <div class="composer-actions">
-              <p class="composer-tip">回车换行，点击右侧按钮发送生成。</p>
-              <button id="generate-button" class="primary-button" type="submit">
-                生成图片
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <section class="gallery-panel">
-          <header class="panel-header">
-            <div>
-              <p class="panel-kicker">Output</p>
-              <h2>生成结果</h2>
-            </div>
-            <span id="gallery-count" class="count-label">0 张</span>
-          </header>
-
-          <div id="hero-state" class="hero-state">
-            <p>第一张图会出现在这里。</p>
+        <header class="workspace-header">
+          <div>
+            <p class="workspace-kicker">Sub2API Image Workspace</p>
+            <h2>提示词对话与结果画布</h2>
           </div>
+          <div class="workspace-signals">
+            <span>当前模型由左侧配置控制</span>
+            <span>右侧只展示 AI 返回结果</span>
+          </div>
+        </header>
 
-          <div id="gallery" class="gallery"></div>
-        </section>
+        <div class="workspace-grid">
+          <section class="chat-panel">
+            <header class="panel-header">
+              <div>
+                <p class="panel-kicker">Conversation</p>
+                <h2>提示词对话</h2>
+              </div>
+              <button id="clear-chat" class="ghost-button" type="button">清空记录</button>
+            </header>
+
+            <div id="messages" class="messages"></div>
+
+            <form id="prompt-form" class="composer">
+              <div class="composer-toolbar">
+                <label class="upload-button" for="image-input">上传参考图</label>
+                <input id="image-input" name="images" type="file" accept="image/*" multiple hidden />
+                <p class="composer-tip">有图就走改图接口，无图就走纯文本生成。</p>
+              </div>
+              <div id="attachment-strip" class="attachment-strip" hidden></div>
+              <textarea
+                id="prompt-input"
+                name="prompt"
+                rows="4"
+                placeholder="例如：上传一张头像，再说“改成极简黑白 logo，保留轮廓感”。"
+                required
+              ></textarea>
+              <div class="composer-actions">
+                <p class="composer-tip">支持连续对话，最新生成图会优先占据右侧主画布。</p>
+                <button id="generate-button" class="primary-button" type="submit">
+                  生成图片
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="gallery-panel">
+            <header class="panel-header">
+              <div>
+                <p class="panel-kicker">Output</p>
+                <h2>生成结果</h2>
+              </div>
+              <span id="gallery-count" class="count-label">0 张</span>
+            </header>
+
+            <div id="hero-state" class="hero-state">
+              <p>第一张图会出现在这里。</p>
+            </div>
+
+            <div id="gallery" class="gallery"></div>
+          </section>
+        </div>
       </main>
     </div>
 

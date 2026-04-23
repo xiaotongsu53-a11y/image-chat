@@ -210,7 +210,13 @@ function renderHero(image) {
   dom.heroState.classList.remove('loading');
   dom.heroState.innerHTML = '';
   if (!image) {
-    dom.heroState.innerHTML = '<p>第一张图会出现在这里。</p>';
+    dom.heroState.innerHTML = `
+      <div class="hero-empty">
+        <p class="hero-empty-label">Result Canvas</p>
+        <h3>第一张结果图会停在这里。</h3>
+        <p>左侧继续输入提示词，最新一张 AI 返回结果会优先占据这块主画布，下方保留历史缩略图。</p>
+      </div>
+    `;
     return;
   }
 
@@ -232,10 +238,14 @@ function renderHero(image) {
   meta.appendChild(note);
   frame.appendChild(meta);
 
+  const media = document.createElement('div');
+  media.className = 'hero-media';
+
   const img = document.createElement('img');
   img.src = image.dataUrl;
   img.alt = image.revisedPrompt || '生成图片';
-  frame.appendChild(img);
+  media.appendChild(img);
+  frame.appendChild(media);
   dom.heroState.appendChild(frame);
 }
 
@@ -326,7 +336,7 @@ function clearChat() {
   dom.galleryCount.textContent = '0 张';
   renderHero(null);
   void deleteDbValue(sessionKey);
-  setStatus('等待生成');
+  setStatus('当前空闲');
 }
 
 function restoreSession() {

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Chat Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div>
+          <p class="eyebrow">Chat To Image</p>
+          <h1>对话式生图工作台</h1>
+          <p class="lede">
+            填入你的 Sub2API 地址和 Key，像聊天一样输入提示词，右侧会持续累积生成结果。
+          </p>
+        </div>
+
+        <form id="config-form" class="config-panel">
+          <label class="field">
+            <span>Base URL</span>
+            <input
+              id="base-url"
+              name="baseUrl"
+              value="http://154.26.182.225"
+              placeholder="http://154.26.182.225"
+              required
+            />
+          </label>
+          <label class="field">
+            <span>API Key</span>
+            <input
+              id="api-key"
+              name="apiKey"
+              type="password"
+              value="sk-efc8d3303ffb9c2dd4d62d7fd8b3328bafaf06aef088770e6f0005f8afcae170"
+              placeholder="sk-..."
+              required
+            />
+          </label>
+          <div class="field-grid">
+            <label class="field">
+              <span>模型</span>
+              <select id="model" name="model">
+                <option value="gpt-image-2">gpt-image-2</option>
+                <option value="gpt-image-1.5">gpt-image-1.5</option>
+                <option value="gpt-image-1">gpt-image-1</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>尺寸</span>
+              <select id="size" name="size">
+                <option value="1024x1024">1024 x 1024</option>
+                <option value="1536x1024">1536 x 1024</option>
+                <option value="1024x1536">1024 x 1536</option>
+              </select>
+            </label>
+          </div>
+          <p class="hint">配置和会话保存在当前浏览器本地存储，不写入代码。</p>
+        </form>
+
+        <div class="sidebar-footer">
+          <div class="status-pill" id="status-pill">当前空闲</div>
+          <p class="meta">本地代理：<code>http://127.0.0.1:3187/api/generate</code></p>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section class="chat-panel">
+          <header class="panel-header">
+            <div>
+              <p class="panel-kicker">Conversation</p>
+              <h2>提示词对话</h2>
+            </div>
+            <button id="clear-chat" class="ghost-button" type="button">清空记录</button>
+          </header>
+
+          <div id="messages" class="messages"></div>
+
+          <form id="prompt-form" class="composer">
+            <div class="composer-toolbar">
+              <label class="upload-button" for="image-input">上传参考图</label>
+              <input id="image-input" name="images" type="file" accept="image/*" multiple hidden />
+              <p class="composer-tip">支持带图聊天，上传后会走改图接口。</p>
+            </div>
+            <div id="attachment-strip" class="attachment-strip" hidden></div>
+            <textarea
+              id="prompt-input"
+              name="prompt"
+              rows="4"
+              placeholder="例如：上传一张头像，再说‘改成极简黑白 logo，保留轮廓感’。"
+              required
+            ></textarea>
+            <div class="composer-actions">
+              <p class="composer-tip">回车换行，点击右侧按钮发送生成。</p>
+              <button id="generate-button" class="primary-button" type="submit">
+                生成图片
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="gallery-panel">
+          <header class="panel-header">
+            <div>
+              <p class="panel-kicker">Output</p>
+              <h2>生成结果</h2>
+            </div>
+            <span id="gallery-count" class="count-label">0 张</span>
+          </header>
+
+          <div id="hero-state" class="hero-state">
+            <p>第一张图会出现在这里。</p>
+          </div>
+
+          <div id="gallery" class="gallery"></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="preview-dialog" class="preview-dialog">
+      <button id="preview-close" class="preview-close" type="button">关闭</button>
+      <img id="preview-image" alt="预览图" />
+    </dialog>
+
+    <template id="message-template">
+      <article class="message">
+        <div class="message-role"></div>
+        <div class="message-body"></div>
+        <div class="message-attachments" hidden></div>
+      </article>
+    </template>
+
+    <template id="gallery-item-template">
+      <article class="gallery-item">
+        <button class="gallery-thumb" type="button">
+          <img alt="生成结果缩略图" />
+        </button>
+        <div class="gallery-copy">
+          <p class="gallery-title"></p>
+          <a class="gallery-download" download>保存 PNG</a>
+        </div>
+      </article>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

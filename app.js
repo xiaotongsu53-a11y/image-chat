@@ -38,6 +38,8 @@ const dom = {
   previewDialog: document.getElementById('preview-dialog'),
   previewImage: document.getElementById('preview-image'),
   previewClose: document.getElementById('preview-close'),
+  previewZoom: document.getElementById('preview-zoom'),
+  previewBody: document.getElementById('preview-body'),
   messageTemplate: document.getElementById('message-template'),
   galleryTemplate: document.getElementById('gallery-item-template'),
   generateButton: document.getElementById('generate-button'),
@@ -288,7 +290,20 @@ function renderHero(image) {
 
 function openPreview(src) {
   dom.previewImage.src = src;
+  setPreviewZoom(false);
   dom.previewDialog.showModal();
+}
+
+function setPreviewZoom(zoomed) {
+  dom.previewBody.classList.toggle('is-zoomed', zoomed);
+  dom.previewZoom.textContent = zoomed ? '适应' : '原图';
+  if (!zoomed) {
+    dom.previewBody.scrollTo({ top: 0, left: 0 });
+  }
+}
+
+function togglePreviewZoom() {
+  setPreviewZoom(!dom.previewBody.classList.contains('is-zoomed'));
 }
 
 function renderComposerImages() {
@@ -527,7 +542,9 @@ dom.promptForm.addEventListener('submit', async (event) => {
 
 dom.clearChat.addEventListener('click', clearChat);
 dom.previewClose.addEventListener('click', () => dom.previewDialog.close());
+dom.previewZoom.addEventListener('click', togglePreviewZoom);
 dom.previewDialog.addEventListener('click', (event) => {
+  if (event.target !== dom.previewDialog) return;
   const rect = dom.previewDialog.getBoundingClientRect();
   const isInDialog =
     rect.top <= event.clientY &&
@@ -538,6 +555,57 @@ dom.previewDialog.addEventListener('click', (event) => {
     dom.previewDialog.close();
   }
 });
+
+let previewPan = null;
+let previewPanned = false;
+
+dom.previewBody.addEventListener('mousedown', (event) => {
+  if (!dom.previewBody.classList.contains('is-zoomed')) return;
+  if (event.button !== 0) return;
+  previewPan = {
+    startX: event.clientX,
+    startY: event.clientY,
+    scrollLeft: dom.previewBody.scrollLeft,
+    scrollTop: dom.previewBody.scrollTop,
+    moved: false
+  };
+  dom.previewBody.classList.add('is-panning');
+  event.preventDefault();
+});
+
+window.addEventListener('mousemove', (event) => {
+  if (!previewPan) return;
+  const dx = event.clientX - previewPan.startX;
+  const dy = event.clientY - previewPan.startY;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) previewPan.moved = true;
+  dom.previewBody.scrollLeft = previewPan.scrollLeft - dx;
+  dom.previewBody.scrollTop = previewPan.scrollTop - dy;
+});
+
+window.addEventListener('mouseup', () => {
+  if (!previewPan) return;
+  previewPanned = previewPan.moved;
+  previewPan = null;
+  dom.previewBody.classList.remove('is-panning');
+});
+
+dom.previewImage.addEventListener('click', (event) => {
+  event.stopPropagation();
+  if (previewPanned) {
+    previewPanned = false;
+    return;
+  }
+  togglePreviewZoom();
+});
+
+dom.previewBody.addEventListener('wheel', (event) => {
+  if (!dom.previewBody.classList.contains('is-zoomed')) return;
+  if (event.ctrlKey || event.metaKey) return;
+  if (event.shiftKey) {
+    dom.previewBody.scrollLeft += event.deltaY;
+    event.preventDefault();
+  }
+}, { passive: false });
 
 async function init() {
   loadConfig();

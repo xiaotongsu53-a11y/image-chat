@@ -150,8 +150,13 @@
     <div id="scrim" class="scrim" hidden></div>
 
     <dialog id="preview-dialog" class="preview-dialog">
-      <button id="preview-close" class="preview-close" type="button">关闭</button>
-      <img id="preview-image" alt="预览图" />
+      <div class="preview-head">
+        <button id="preview-zoom" class="preview-chip" type="button">原图</button>
+        <button id="preview-close" class="preview-chip" type="button">关闭</button>
+      </div>
+      <div id="preview-body" class="preview-body">
+        <img id="preview-image" alt="预览图" />
+      </div>
     </dialog>
 
     <template id="message-template">

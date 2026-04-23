@@ -1026,13 +1026,19 @@ button:disabled {
 /* =============== Preview dialog =============== */
 .preview-dialog {
   border: 0;
-  width: min(92vw, 980px);
-  padding: 18px;
+  width: 96vw;
+  height: 94vh;
+  max-width: none;
+  max-height: 94vh;
+  padding: 14px;
   border-radius: var(--radius-lg);
   background: rgba(14, 14, 22, 0.96);
   border: 1px solid var(--line-strong);
   color: var(--ink);
   box-shadow: var(--shadow-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .preview-dialog::backdrop {
@@ -1041,32 +1047,94 @@ button:disabled {
   -webkit-backdrop-filter: blur(8px);
 }
 
-.preview-dialog img {
-  width: 100%;
-  max-height: 78vh;
-  object-fit: contain;
-  display: block;
-  border-radius: var(--radius-md);
+.preview-head {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.preview-close {
+.preview-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 32px;
   padding: 0 14px;
   font-size: 12px;
-  border: 0;
+  font-weight: 500;
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--ink);
   border: 1px solid var(--line-strong);
-  margin-bottom: 12px;
-  transition: background 0.15s ease;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.preview-close:hover {
+.preview-chip:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+#preview-zoom {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-color: rgba(139, 124, 255, 0.28);
+}
+
+#preview-zoom:hover {
+  background: rgba(139, 124, 255, 0.22);
+  border-color: var(--accent);
+}
+
+.preview-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  border-radius: var(--radius-md);
+  background:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.02) 0% 25%, transparent 0% 50%) 50% / 24px 24px,
+    rgba(0, 0, 0, 0.35);
+}
+
+.preview-body img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  cursor: zoom-in;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: max-width 0.18s ease, max-height 0.18s ease;
+}
+
+.preview-body.is-zoomed {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.preview-body.is-zoomed img {
+  max-width: none;
+  max-height: none;
+  width: auto;
+  height: auto;
+  cursor: grab;
+}
+
+.preview-body.is-panning,
+.preview-body.is-panning img {
+  cursor: grabbing !important;
+}
+
+.preview-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.preview-body::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
 }
 
 /* =============== Scrollbars =============== */

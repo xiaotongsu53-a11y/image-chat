@@ -30,7 +30,6 @@ const dom = {
   imageInput: document.getElementById('image-input'),
   attachmentStrip: document.getElementById('attachment-strip'),
   messages: document.getElementById('messages'),
-  heroState: document.getElementById('hero-state'),
   gallery: document.getElementById('gallery'),
   galleryCount: document.getElementById('gallery-count'),
   statusPill: document.getElementById('status-pill'),
@@ -41,12 +40,11 @@ const dom = {
   previewZoom: document.getElementById('preview-zoom'),
   previewBody: document.getElementById('preview-body'),
   messageTemplate: document.getElementById('message-template'),
+  imageMessageTemplate: document.getElementById('image-message-template'),
   galleryTemplate: document.getElementById('gallery-item-template'),
   generateButton: document.getElementById('generate-button'),
   toggleConfig: document.getElementById('toggle-config'),
-  toggleChat: document.getElementById('toggle-chat'),
   configDrawer: document.getElementById('config-drawer'),
-  chatDrawer: document.getElementById('chat-drawer'),
   scrim: document.getElementById('scrim'),
   progressTrack: document.getElementById('progress-track')
 };
@@ -210,12 +208,17 @@ function closeAllDrawers() {
   document.querySelectorAll('.drawer.is-open').forEach((d) => closeDrawer(d));
 }
 
-function renderMessage(role, content, attachments = []) {
+function scrollMessagesToEnd() {
+  requestAnimationFrame(() => {
+    dom.messages.scrollTop = dom.messages.scrollHeight;
+  });
+}
+
+function renderTextMessage(role, content, attachments = []) {
   const fragment = dom.messageTemplate.content.cloneNode(true);
   const message = fragment.querySelector('.message');
   const attachmentBox = fragment.querySelector('.message-attachments');
   message.dataset.role = role;
-  fragment.querySelector('.message-role').textContent = role === 'user' ? 'You' : 'Assistant';
   fragment.querySelector('.message-body').textContent = content;
 
   if (Array.isArray(attachments) && attachments.length) {
@@ -238,54 +241,50 @@ function renderMessage(role, content, attachments = []) {
   dom.messages.appendChild(fragment);
 }
 
-function appendMessage(role, content, attachments = []) {
-  state.messages.push({ role, content, attachments });
-  void saveSession();
-  renderMessage(role, content, attachments);
-  dom.messages.scrollTop = dom.messages.scrollHeight;
+function renderImageMessage(image) {
+  const fragment = dom.imageMessageTemplate.content.cloneNode(true);
+  const frame = fragment.querySelector('.image-frame');
+  const img = fragment.querySelector('img');
+  const download = fragment.querySelector('.image-action-download');
+  const preview = fragment.querySelector('.image-action-preview');
+
+  img.src = image.dataUrl;
+  img.alt = image.revisedPrompt || image.prompt || '生成结果';
+  frame.addEventListener('click', () => openPreview(image.dataUrl));
+
+  download.href = image.dataUrl;
+  download.download = image.fileName || `image-chat-${image.id || Date.now()}.png`;
+
+  preview.addEventListener('click', (event) => {
+    event.stopPropagation();
+    openPreview(image.dataUrl);
+  });
+
+  dom.messages.appendChild(fragment);
 }
 
-function renderHero(image) {
-  dom.heroState.classList.remove('loading');
-  dom.heroState.innerHTML = '';
-  if (!image) {
-    dom.heroState.innerHTML = `
-      <div class="hero-empty">
-        <p class="hero-empty-label">Result Canvas</p>
-        <h3>从一句话开始创作</h3>
-        <p>在下方输入提示词，或上传参考图再描述改动。最新一张结果会占据主画布，历史会沉淀到左侧胶片柱。</p>
-      </div>
-    `;
-    return;
+function renderMessage(message) {
+  if (message.kind === 'image' && message.image) {
+    renderImageMessage(message.image);
+  } else {
+    renderTextMessage(message.role, message.content, message.attachments);
   }
+}
 
-  const frame = document.createElement('div');
-  frame.className = 'hero-frame';
+function appendTextMessage(role, content, attachments = []) {
+  const message = { role, kind: 'text', content, attachments };
+  state.messages.push(message);
+  void saveSession();
+  renderMessage(message);
+  scrollMessagesToEnd();
+}
 
-  const meta = document.createElement('div');
-  meta.className = 'hero-meta';
-
-  const badge = document.createElement('span');
-  badge.className = 'hero-badge';
-  badge.textContent = image.mode === 'edits' ? 'AI改图结果' : 'AI生成结果';
-
-  const note = document.createElement('p');
-  note.className = 'hero-note';
-  note.textContent = '最新生成图';
-
-  meta.appendChild(badge);
-  meta.appendChild(note);
-  frame.appendChild(meta);
-
-  const media = document.createElement('div');
-  media.className = 'hero-media';
-
-  const img = document.createElement('img');
-  img.src = image.dataUrl;
-  img.alt = image.revisedPrompt || '生成图片';
-  media.appendChild(img);
-  frame.appendChild(media);
-  dom.heroState.appendChild(frame);
+function appendImageMessage(image) {
+  const message = { role: 'assistant', kind: 'image', image };
+  state.messages.push(message);
+  void saveSession();
+  renderMessage(message);
+  scrollMessagesToEnd();
 }
 
 function openPreview(src) {
@@ -375,6 +374,7 @@ function addImages(prompt, images, options = {}) {
     outputs = outputs.slice(-1);
   }
 
+  const saved = [];
   outputs.forEach((image, index) => {
     const savedImage = {
       ...image,
@@ -385,11 +385,12 @@ function addImages(prompt, images, options = {}) {
     };
     state.images.push(savedImage);
     renderGalleryItem(savedImage, state.images.length - 1);
+    saved.push(savedImage);
   });
 
   void saveSession();
   dom.galleryCount.textContent = `${dom.gallery.children.length} 张`;
-  renderHero(outputs[0]);
+  saved.forEach((image) => appendImageMessage(image));
 }
 
 function clearChat() {
@@ -399,52 +400,69 @@ function clearChat() {
   dom.messages.innerHTML = '';
   dom.gallery.innerHTML = '';
   dom.galleryCount.textContent = '0 张';
-  renderHero(null);
   void deleteDbValue(sessionKey);
   setStatus('当前空闲');
+  renderEmptyHint();
+}
+
+function renderEmptyHint() {
+  if (state.messages.length) return;
+  const hint = document.createElement('div');
+  hint.className = 'empty-hint';
+  hint.innerHTML = `
+    <p class="empty-kicker">Chat to Image</p>
+    <h2>从一句话开始创作</h2>
+    <p>在下方输入提示词，或上传参考图后说明改动。对话记录和生成结果都会留在这里。</p>
+  `;
+  dom.messages.appendChild(hint);
+}
+
+function clearEmptyHint() {
+  const hint = dom.messages.querySelector('.empty-hint');
+  if (hint) hint.remove();
 }
 
 function restoreSession() {
   dom.messages.innerHTML = '';
   dom.gallery.innerHTML = '';
 
-  state.messages.forEach(({ role, content, attachments }) => renderMessage(role, content, attachments));
+  state.messages.forEach((message) => {
+    // backward-compat: old messages only had { role, content, attachments }
+    if (!message.kind) message.kind = 'text';
+    renderMessage(message);
+  });
   state.images.forEach((image, index) => renderGalleryItem(image, index));
 
   dom.galleryCount.textContent = `${state.images.length} 张`;
-  if (state.images.length) {
-    renderHero(state.images[state.images.length - 1]);
+  if (state.messages.length) {
     setStatus('已恢复历史记录');
-  } else if (state.messages.length) {
-    renderHero(null);
-    setStatus('只恢复了对话，暂无图片结果');
   } else {
-    renderHero(null);
     setStatus('当前空闲');
+    renderEmptyHint();
   }
 
-  dom.messages.scrollTop = dom.messages.scrollHeight;
+  scrollMessagesToEnd();
 }
 
 async function generate(prompt) {
   readConfigFromInputs();
+  clearEmptyHint();
 
   const missingFields = [];
   if (!state.config.baseUrl) missingFields.push('Base URL');
   if (!state.config.apiKey) missingFields.push('API Key');
 
   if (missingFields.length) {
-    appendMessage('assistant', `先把 ${missingFields.join(' 和 ')} 填好。`);
+    appendTextMessage('assistant', `先把 ${missingFields.join(' 和 ')} 填好。`);
     return;
   }
 
   state.generating = true;
   dom.generateButton.disabled = true;
-  dom.heroState.classList.add('loading');
   dom.progressTrack.hidden = false;
   setStatus('生成中...', true);
   const userAttachments = state.composerImages.map((attachment) => ({ ...attachment }));
-  appendMessage('user', prompt, userAttachments);
+  appendTextMessage('user', prompt, userAttachments);
   clearComposerImages();
 
   try {
@@ -470,12 +488,9 @@ async function generate(prompt) {
       mode: payload.mode,
       sourceAttachments: userAttachments
     });
-    const actionLabel = payload.mode === 'edits' ? '已完成带图改图' : '已生成';
-    appendMessage('assistant', `${actionLabel} ${payload.images.length} 张图片。`);
     setStatus('生成完成');
   } catch (error) {
-    dom.heroState.classList.remove('loading');
-    appendMessage('assistant', error.message || '生成失败');
+    appendTextMessage('assistant', error.message || '生成失败');
     setStatus('请求失败');
   } finally {
     state.generating = false;
@@ -500,11 +515,6 @@ dom.toggleConfig.addEventListener('click', () => {
   const isOpen = dom.configDrawer.classList.contains('is-open');
   closeAllDrawers();
   if (!isOpen) openDrawer(dom.configDrawer);
-});
-dom.toggleChat.addEventListener('click', () => {
-  const isOpen = dom.chatDrawer.classList.contains('is-open');
-  closeAllDrawers();
-  if (!isOpen) openDrawer(dom.chatDrawer);
 });
 dom.scrim.addEventListener('click', closeAllDrawers);
 document.querySelectorAll('[data-drawer-close]').forEach((btn) => {
@@ -633,9 +643,6 @@ async function init() {
   await loadSession();
   syncConfigToInputs();
   restoreSession();
-  if (!state.messages.length) {
-    appendMessage('assistant', '配置好接口后，输入一句提示词就能开始生图。');
-  }
 }
 
 void init();

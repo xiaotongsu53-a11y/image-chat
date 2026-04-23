@@ -43,9 +43,6 @@
 
         <div class="topbar-right">
           <div class="status-pill" id="status-pill">当前空闲</div>
-          <button id="toggle-chat" class="icon-button" type="button" aria-label="对话记录" title="对话记录">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </button>
           <button id="toggle-config" class="icon-button" type="button" aria-label="设置" title="接口设置">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
@@ -65,7 +62,9 @@
       </aside>
 
       <main class="stage">
-        <div id="hero-state" class="hero-state"></div>
+        <div class="conversation">
+          <div id="messages" class="messages"></div>
+        </div>
 
         <div class="composer-dock">
           <form id="prompt-form" class="composer">
@@ -134,19 +133,6 @@
       </form>
     </aside>
 
-    <aside class="drawer drawer-left" id="chat-drawer" aria-hidden="true">
-      <div class="drawer-head">
-        <div>
-          <p class="drawer-kicker">Conversation</p>
-          <h2>对话记录</h2>
-        </div>
-        <button class="icon-button drawer-close" data-drawer-close="chat-drawer" type="button" aria-label="关闭">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <div id="messages" class="messages drawer-body"></div>
-    </aside>
-
     <div id="scrim" class="scrim" hidden></div>
 
     <dialog id="preview-dialog" class="preview-dialog">
@@ -161,9 +147,28 @@
 
     <template id="message-template">
       <article class="message">
-        <div class="message-role"></div>
         <div class="message-body"></div>
         <div class="message-attachments" hidden></div>
+      </article>
+    </template>
+
+    <template id="image-message-template">
+      <article class="message message-image" data-role="assistant">
+        <figure class="image-card">
+          <button class="image-frame" type="button">
+            <img alt="生成结果" />
+          </button>
+          <figcaption class="image-actions">
+            <a class="image-action image-action-download" download>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>保存</span>
+            </a>
+            <button class="image-action image-action-preview" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+              <span>查看</span>
+            </button>
+          </figcaption>
+        </figure>
       </article>
     </template>
 
